@@ -1,0 +1,311 @@
+---
+title: "Análisis de desarrollos verticales en Tijuana"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+
+library(easypackages)
+my_packages <- c("readxl", "tidyverse", "ggmap")
+libraries(my_packages)
+
+datos <- read_excel("Bd_verticales_tij.xlsx")
+
+```
+
+\newpage
+
+# Desarrollos verticales en Tijuana
+
+## Tabla de desarrollos verticales en Tijuana
+
+```{r results='asis', fig.align= 'left'}
+
+library(xtable)
+
+
+tabla <- xtable(datos %>%
+  select(nombre_desarrollo) %>%
+    mutate_all(funs(toupper)), caption = "Desarrollos verticales en Tijuana", label = NULL)
+
+print.xtable(tabla, comment = FALSE, caption.placement = "top", include.colnames = FALSE)
+
+
+```
+
+En Tijuana existen arrededor de 31 desarrollos verticales, cuyas características y mercado meta están significativamente diferenciados. Los principales competidores en el mercado son ARBOLEDA RESIDENCIAL, SAYAN CAMPESTRE, ADAMANT, RESIDENCIAL NEW CITY, COSMOPOLITAN RESIDENCES, LIFE BY COSMOPOLITAN, CUMBRES SKY VIEW y NIVEL DIEZ.
+
+Estas construcciones están dirigidas a un mercado meta High End. Este grupo de consumidores se puede caracterizar por la clasificación de la AMAI(Asociación Mexicana de Agencias de Investigación de Mercados) por los niveles A/B y C+. Particularmente las característica de estos grupos de consumidores son las siguitentes:
+
+* A/B El 82% de los hogares que se encuentran en éste nivel socioeconómicos tiene un jefe de familia con estudios profesionales, cuentan con internet fijo en la vivienda, destinan el 13% del gasto en educación y el 25% de su gasto se destina a alimentos. Este segmento contiene el segmento de población con más alto nivel de vida. (Clase Alta). Sólo el 6.8% de las familias se encuentran en éste nivel socioeconómico.
+
+  * El jefe de familia tiene nivel de estudios de licenciatura o posgrado
+  * Son familias emprendedoras y valoran lo material
+  * Sus compras las deciden por factores aspiracionales y de estatus
+  * Viven en casas/departamentos estéticas y bien definidas
+  * Cuentan con 2 o tres baños
+  * Tienen otros ingesos proveniente de rentas, inversiones, jubilaciones o pensiones.
+
+* C+ El 89% de los hogares cuentan con uno o más veículos, el 91% tiene acceso a internet fijo en la vivienda, y el la proporción del gasto que destinan a alimentación es de 31%. Se consideran familias cuyo nivel de vida es superior al promedio (Clase media alta). Sólo el 14.2% de los hogares mexicanos se encuentran en éste nivel
+  
+  * El jefe de familia tiene estudios de licenciatura completa o incompleta
+  * Son familias emprendedoras e idealistas
+  * Sus compras están enfocadas en beneficios psicológicos
+  * Viven en casas de alrrededor de 200m de construcción 
+  * En este nivel se encuentran la mayoría de profesionistas o trabajadores independientes
+
+
+\newpage
+## Posición geográfica aproximada de desarrollos verticales en Tijuana
+
+
+```{r}
+
+tj <- c(-117.021211, 32.518561)
+tj_map <- get_map(location = tj, source = "google", maptype = "roadmap", zoom = 13)
+
+dt <- datos %>%
+  mutate_all(funs(toupper)) %>%
+  select(nombre_desarrollo, Latitud, Longitud) %>%
+  filter(!nombre_desarrollo %in% c("Bajalta")) %>%
+  mutate(Latitud = as.numeric(Latitud),
+         Longitud = as.numeric(Longitud)) %>%
+  filter(!is.na(Latitud))
+  
+
+ggmap(tj_map, extent = "panel", maprange = FALSE) + 
+  geom_point(data = dt, aes(x = Longitud, y = Latitud, colour = factor(nombre_desarrollo))) +
+  scale_color_manual(values = c("#ca2128", "#f6932f", "#6ebe4c", "#2e9fd9", "#a74e9d", "#6f3da3", "#a0121d", "#ed6223", "#2b9245", "#0d709a", "#862884", "#4f2584", "#797273", "#540e11", "#2128ca"), name = "Desarrollo") +
+  ggtitle("Ubicación geográfica de desarrollos en Tijuana") +
+  theme(plot.title = element_text(family = "Helvetica", face = "bold", color = "#666666", size = 11)) +
+  theme(legend.title = element_text(family = "Helvetica", face = "bold", color = "#666666", size = 10))
+
+```
+
+
+Los desarrollos verticales en Tijuana se encuentran ubicados en la denominada Zona Dorada, Centro y cerca de la línea. Los desarrollos con la mejor relación precio/ubicación son: Adamant, Bajalta, Nivel Diez, Sayan Campestre, puesto que está estratégicamente ubicados. 
+
+Cabe destacar que el desarrollo BAJALTA cuyas expectativas son muchas, está actualmente resolviendo problemáticas jurídicas.
+
+
+\newpage
+## Comparativo de torres
+
+```{r results='asis'}
+
+addtorow <- list()
+addtorow$pos <- list(0)
+addtorow$command <- c("Desarrollo & Unidades & Torres & Distribuciones\\\\\n")
+
+tabla2 <- xtable(datos %>%
+  select(nombre_desarrollo, unidades, `numero de torres`, numero_de_tipologias) %>%
+  rename("numero_de_torres" = "numero de torres") %>%
+  mutate(numero_de_torres = as.numeric(numero_de_torres), 
+         unidades = as.numeric(unidades)) %>%
+  arrange(desc(unidades)) %>%
+    filter(nombre_desarrollo %in% c("Adamant", "Residencial New City", "Cosmopolitan Residences", 
+"Life by Cosmopolitan", "Angular", "Cumbres Sky View", "Distrito Revolucion", 
+"High Land", "Arboleda Residencial", "Nivel Diez", "Levant Campestre", 
+"ICON", "SIE7E", "Zona Victoria", "Torre Espacio Chapultepec", 
+"Privalta", "Kyo Hipódromo", "Kyo Altalia", "Sayan Campestre", 
+"Acceso 1", "Colinas de chapultepec", "Entorno 4", "Horizonte", 
+"Metrópoli")) %>%
+  mutate_all(funs(toupper)), digits = 0, caption = "Características desarrollos verticales")
+
+print.xtable(tabla2, add.to.row =  addtorow ,comment = FALSE , caption.placement = "top", include.colnames = FALSE, include.rownames = FALSE)
+```
+
+En la Tabla 2 están ordenados los desarrollos respecto al número de unidades y el número de torres. Eliminando de la lista BAJALTA, en primer lugar se ubica ADAMANT, con 200 unidades y una sola torre, pero con 14 distribuciones.
+
+Adamant cuenta con departamentos desde 38m^2 hasta 160m^2.
+
+Posteriormente se encuentran Colinas de Chapultepec y Residencial New City
+
+
+
+\newpage
+## Precio medio por desarrollo
+
+
+```{r results='asis'}
+
+dat <- readxl::read_xlsx("Bd_verticales_tij.xlsx", sheet = 2)
+
+tabla3 <- xtable(dat %>%
+  mutate(precio_en_dolares = as.numeric(precio_en_dolares),
+         nombre_desarrollo = toupper(nombre_desarrollo)) %>%
+  filter(!is.na(precio_en_dolares)) %>% 
+  group_by(nombre_desarrollo) %>% 
+  summarise(m.price = mean(precio_en_dolares)) %>%
+  arrange(desc(m.price)), digits = 0, caption = "Precio medio por departamento")
+
+
+print.xtable(tabla3, caption.placement = "top", comment = FALSE, format.args = list(big.mark = ","), include.colnames = FALSE)
+  
+  
+```
+
+
+Se pueden catalogar en tres grupos principales. 
+
+1. El primer grupo está compuesto por los desarrollos cuyo precio medio se encuentra entre $440,000 y 723,000 dólares. En éste grupo se encuentran dos desarrollos; NIVEL DIEZ y SAYAN CAMPESTRE. Este grupo está caracterizado por tener una gran cantidad de amenidades de alta calidad, distribuciones con departamentos por encima de los 150m^2 y ubicación privilegiada
+
+
+2. El segundo grupo está compuesto por los desarrollos cuyo precio medio está entre 199,000 y 381,380. En este grupo se encuentran; COSMOPOLITAN RESIDENCES, HORIZONTE, ARBOLEDA RESIDENCIAL, RESIDENCIAL NEW CITY, ANGULAR, DISTRITO REVOLUCION, CUMBRES SKY VIEW, LIFE BY COSMOPOLITAN. Estos desarrollos están caracterizados por tener buenas amenidades y un concepto de vivienda propio, de este grupo destacan el RESIDENCIAL NEW CITY, por la gran cantidad de amenidades que ofrece y además por su posicionamiento en la ciudad, y ARBOLEDA RESIDENCIAL, por su concepto de vivienda sustentable, las amenidades ofrecidas y la certificación LEED, es interesante destacar que los desarrolladores VIA CAPITAL son también desarrolladores del edificio de oficinas VIA CORPORATIVO.
+
+
+3. En el tercer grupo se encuentran departamentos cuyo precio medio se encuentra entre $105,450 y 176,997 dólares. Este grupo está caracterizado por la cantiad de amenidades que ofrecen y su ubicación. Destacan los desarrollos de KYO y ADAMANT. Su oferta está basada en el estatus y ubicación.
+
+
+
+
+
+
+\newpage
+# Comparativo costo medio del departamento
+
+```{r}
+
+dat %>%
+  mutate(precio_en_dolares = as.numeric(precio_en_pesos)) %>%
+  filter(!is.na(precio_en_dolares)) %>%
+  mutate(nombre_desarrollo = toupper(nombre_desarrollo)) %>%
+  group_by(nombre_desarrollo) %>%
+  summarise(m.price = mean(precio_en_dolares)) %>%
+  ggplot(aes(x = reorder(nombre_desarrollo, m.price), m.price)) +
+  geom_col(aes(fill = m.price)) +
+  coord_flip() +
+  ggtitle("Costo medio del departamento en Dólares") +
+  scale_y_continuous(breaks = c(0, 2500000, 5000000, 7500000, 10000000, 12500000), labels = c("0","250k", "500k", "750k",  "1mi.", "1,25mi.")) +
+  ylab(label = NULL) + 
+  xlab(label = NULL) +
+  theme_minimal() + 
+  theme(legend.position = "none",plot.title = element_text(family = "Helvetica", face = "bold", color = "#666666"), axis.text = element_text(family = "Helvetica", face = "bold"))
+
+
+
+```
+\newpage
+
+En la gráfica anterior se pueden aprecias los costos de los departamentos por desarrollo ordenados de mayor a menor. 
+
+
+## Comparativo de los metros cuadrados
+
+
+```{r}
+
+dat %>%
+  select(nombre_desarrollo, metros_cuadrados, precio_en_dolares) %>%
+  mutate(precio = as.numeric(precio_en_dolares),
+         metros = as.numeric(metros_cuadrados),
+         pxm = precio / metros) %>%
+  mutate(nombre_desarrollo = toupper(nombre_desarrollo)) %>%
+  filter(!is.na(pxm)) %>%
+  group_by(nombre_desarrollo) %>%
+  summarise(m.price = mean(pxm, na.rm = TRUE)) %>%
+  ggplot(aes(x = reorder(nombre_desarrollo, m.price), y = m.price)) +
+    geom_col(aes(fill = m.price)) +
+  coord_flip() +
+  xlab(label = NULL) +
+  ylab(label = NULL) +
+  ggtitle("Costo medio por metro cuadrado") + 
+  scale_y_continuous( breaks = c(0, 500, 1000, 1500, 2000, 2500, 3000), labels = c("0", "500", "1,000" ,"1,500", "2,000", "2,500", "3,000")) + 
+  theme_minimal() + 
+  theme(legend.position = "none", plot.title = element_text(family = "Helvetica", face = "bold", color = "#666666"), axis.text = element_text(family = "Helvetica", face = "bold"))
+
+
+```
+
+\newpage
+## Comparativo de las amenidades
+
+
+```{r}
+
+dat %>%
+  select(-desarrollador, -nombre_de_la_tipologia, -numero_de_habitaciones, -Niveles_departamento, -metros_cuadrados, -T.C., -precio_en_pesos, -precio_en_dolares, -pesos_por_metro_cuadrado, -numero_de_unidades) %>%
+  filter(!nombre_desarrollo %in% c("Horizonte")) %>%
+  mutate(nombre_desarrollo = toupper(nombre_desarrollo)) %>%
+  distinct() %>%
+  gather(amenidad, numero, 2:44) %>%
+  group_by(amenidad) %>%
+  mutate(n = sum(numero)) %>%
+  ungroup() %>%
+  group_by(nombre_desarrollo) %>%
+  summarise(n2 = sum(numero)) %>%
+  ggplot(aes(x = reorder(nombre_desarrollo, n2), y = n2)) + 
+  geom_col(aes(fill = n2)) +
+  coord_flip() +
+  ylab(label = NULL) +
+  xlab(label = NULL) +
+  theme_minimal() + 
+  theme(legend.position = "none", plot.title = element_text(family = "Helvetica", face = "bold", color = "#666666"), axis.text = element_text(family = "Helvetica", face = "bold")) +
+  ggtitle("Desarrollos con más amenidades")
+
+```
+\newpage
+# Relación entre el precio promedio del departamento y el número de amenidades
+
+```{r}
+
+dat %>%
+  select(-desarrollador, -nombre_de_la_tipologia, -numero_de_habitaciones, -Niveles_departamento, -metros_cuadrados, -T.C., -precio_en_pesos, -pesos_por_metro_cuadrado, -numero_de_unidades) %>%
+  group_by(nombre_desarrollo) %>%
+  mutate(precio_en_dolares = as.numeric(precio_en_dolares),
+         m.price = mean(precio_en_dolares, na.rm = TRUE)) %>%
+  ungroup() %>%
+  gather(amenidad, valor, c(Alberca, sun_deck, asadores, suites_de_huespedes, salon_de_juegos, lounge, terraza, gimnasio, lavanderia, elevadores_de_alta_velocidad, estacionamiento_para_visitas, bodegas, sky_deck, salon_de_usos_multiples, fogateros, cafe_y_patio, area_de_carga_y_descarga, recepcion_con_front_desk, concierge, tecnologia_residencial, control_de_acceso, Raquetbol, Jacuzzi, Sauna, corredor_de_lectura, zona_barre, studio_yoga, cancha_de_tenis, area_de_bar_con_tv_para_eventos_deportivos, Room_services_de_cocina_privada, Sistema_de_audio_bose_en_areas_comunes, area_de_juegos_para_ninos, guarderia, pet_yard, acondicionado_para_silla_de_ruedas, `WI-FI gratis en espacios comunes`, alberca_con_tobogan, salon_para_tareas, pista_de_patinaje, chapoteadero_para_bebes, Brincolin, Circuito_de_crossfit, terraza_para_ejercicio_al_aire_libre)) %>%
+  select(-precio_en_dolares) %>%
+  filter(valor != 0) %>%
+  group_by(nombre_desarrollo, amenidad) %>%
+  mutate(m = sum(valor),
+         tot = 43,
+         prc = m / tot) %>%
+  ungroup() %>%
+  mutate(nombre_desarrollo = toupper(nombre_desarrollo)) %>%
+  select(-valor, -m,-tot, -amenidad) %>%
+  ggplot(aes(m.price, prc)) + geom_point(aes(colour = nombre_desarrollo)) +
+  geom_smooth(method = "lm") +
+  xlab(label = "Precio promedio") +
+  ylab(label = "Porcentaje de amenidades respecto al total") + 
+  theme_minimal() +
+  theme(plot.title = element_text(family = "Helvetica", face = "bold", color = "#666666"), axis.text = element_text(family = "Helvetica"), legend.position = "none")
+
+```
+\newpage
+
+En la gráfica anterior observamos la relación entre el precio medio del departamento y la cantidad de amenidades. Se observa una relación positiva, lo que quiere decir que los desarrolladores con mayor cantidad de amenidades ofrecen departamentos más caros. Sin embargo, es necesario destacar que las amenidades ofrecidas por los desarrollos cuyo precio medio por metro cuadrado es más alto son de mejor calidad. Destaca el caso de Sayan Campestre, Nivel Diez y Residencial New City
+
+
+
+# Principales amenidades 
+
+```{r}
+
+dat %>% select(-desarrollador, -nombre_de_la_tipologia, -numero_de_habitaciones, -Niveles_departamento, -metros_cuadrados, -T.C., -precio_en_pesos, -precio_en_dolares, -pesos_por_metro_cuadrado, -numero_de_unidades) %>%
+  gather(amenidad, valor, c(Alberca, sun_deck, asadores, suites_de_huespedes, salon_de_juegos, lounge, terraza, gimnasio, lavanderia, elevadores_de_alta_velocidad, estacionamiento_para_visitas, bodegas, sky_deck, salon_de_usos_multiples, fogateros, cafe_y_patio, area_de_carga_y_descarga, recepcion_con_front_desk, concierge, tecnologia_residencial, control_de_acceso, Raquetbol, Jacuzzi, Sauna, corredor_de_lectura, zona_barre, studio_yoga, cancha_de_tenis, area_de_bar_con_tv_para_eventos_deportivos, Room_services_de_cocina_privada, Sistema_de_audio_bose_en_areas_comunes, area_de_juegos_para_ninos, guarderia, pet_yard, acondicionado_para_silla_de_ruedas, `WI-FI gratis en espacios comunes`, alberca_con_tobogan, salon_para_tareas, pista_de_patinaje, chapoteadero_para_bebes, Brincolin, Circuito_de_crossfit, terraza_para_ejercicio_al_aire_libre)) %>% filter(valor != 0 ) %>%
+  distinct() %>%
+  group_by(amenidad) %>%
+  summarise( m = sum(valor)) %>%
+  arrange(desc(m)) %>%
+  filter(m > 3) %>%
+  ggplot(aes(x = reorder(amenidad, m), y = m)) + geom_col(aes(fill = m)) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position = "none") + 
+  ylab(label = NULL) + 
+  xlab(label = NULL) +
+  scale_x_discrete(labels = c("gimnasio" = "Gimnasio", "terraza" = "Terraza", "salon_de_juegos" = "Salón de juegos", "asadores" = "Asadores", "Alberca" = "Alberca", "sun_deck" = "Sun Deck", "control_de_acceso" = "Control de acceso", "fogateros" = "Fogateros", "bodegas" = "Bodegas", "area_de_juegos_para_ninos" = "Área de juegos infantiles", "salon_de_usos_multiples" = "Salón de usos múltiples", "lounge" = "Lounge", "recepcion_con_front_desk" = "Front Desk", "cafe_y_patio" = "Café y Patio", "area_de_bar_con_tv_para_eventos_deportivos"= "Área de bar con Tv")) +
+  ggtitle("Principales amenidades") + 
+  theme(plot.title = element_text(family = "Helvetica", face = "bold", color = "#666666"), axis.text = element_text(family = "Helvetica"))
+
+```
+
+
+En la siguiente gráfica se pueden apreciar las principales amenidades ofrecidas por los desarrolladores de viviendas verticales en Tijuana. 
