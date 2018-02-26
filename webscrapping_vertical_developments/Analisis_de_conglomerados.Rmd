@@ -1,0 +1,83 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+
+library(easypackages)
+my_packages <- c("tidyverse", "cluster", "readr")
+libraries(my_packages)
+
+Bd_verticales_tij <- read_csv("C:/Users/pvelazquez/Desktop/DATOS EDUARDO JARAMILLO/Bd_verticales_tij.csv")
+
+Bd_verticales_tij$agregado <- rowSums(Bd_verticales_tij[,12:54])
+
+datos <- Bd_verticales_tij %>%
+  select(nombre_desarrollo, nombre_de_la_tipologia, numero_de_habitaciones, Niveles_departamento,
+         metros_cuadrados, precio_en_pesos, precio_en_dolares, numero_de_unidades, agregado, pesos_por_metro_cuadrado) %>%
+  mutate(contador = 1)
+
+
+
+
+
+
+
+Bd_verticales_tij$agregado
+
+
+
+
+datos <- Bd_verticales_tij %>%
+  group_by(nombre_de_la_tipologia) 
+datos 
+str(Bd_verticales_tij)
+
+```
+
+```{r}
+dbf <- datos %>%
+  filter(!is.na(numero_de_habitaciones) & !is.na(metros_cuadrados) & !is.na(precio_en_pesos)) %>%
+  select(precio_en_pesos, pesos_por_metro_cuadrado, metros_cuadrados, nombre_desarrollo)
+
+
+plot(metros_cuadrados ~ pesos_por_metro_cuadrado, dbf)
+with(dbf, text(metros_cuadrados ~ pesos_por_metro_cuadrado, labels = nombre_desarrollo, pos = 4, cex = .7))
+
+
+distancias <- dist(dbf, method = "euclidean")
+
+distancias
+cluster1 <- hclust(distancias)
+
+cluster1
+plot(cluster1, main = "Método Manhatan")
+
+cluster.final <- kmeans(distancias, 5)
+
+cluster.final$size
+
+head(dbf)
+
+
+modelo <- lm(log(pesos_por_metro_cuadrado) ~ log(metros_cuadrados) + agregado + numero_de_unidades + numero_de_habitaciones, data = datos)
+
+summary(modelo)
+plot(modelo)
+
+hist(log(datos$pesos_por_metro_cuadrado))
+
+hist(log(datos$metros_cuadrados))
+
+```
+
+
+
+
+
+
+
+
+
+
